@@ -1,5 +1,6 @@
 import React, { Fragment, useState } from 'react';
-//import FileSaver from 'file-saver';
+import encryptFile from '../lib/encryptFile';
+import decryptFile from '../lib/decryptFile';
 
 const Files = () =>
 {
@@ -13,93 +14,9 @@ const Files = () =>
     setFilename((event.target.files[0] !== undefined) ? event.target.files[0].name : 'Choose File');
   };
 
-  const onKeyChange = (event) => { setKey(event.target.value); console.log(key) };
-
-  const encryptFile = () =>
-  {
-    const fileToByteArray = () =>
-    {
-        return new Promise((resolve, reject) =>
-        {
-          try
-          {
-              let reader = new FileReader();
-              let fileByteArray = [];
-
-              reader.readAsArrayBuffer(file);
-              reader.onloadend = (event) =>
-              {
-                  if (event.target.readyState === FileReader.DONE)
-                  {
-                      let arrayBuffer = event.target.result;
-                      fileByteArray = new Uint8Array(arrayBuffer);
-                  };
-                  resolve(fileByteArray);
-              }
-          }
-          catch (err) { reject(err); };
-        });
-    };
-
-    const encryptData = async (data) =>
-    {
-      const algorithm = { name: "AES-GCM", iv: new TextEncoder().encode("Initialization Vector") };
-      const encryptedData =  await window.crypto.subtle.encrypt( algorithm, key, data );
-      return encryptedData;
-    }
-
-    try
-    {
-      (async () =>
-        {
-          // generating key
-          const key = await window.crypto.subtle.generateKey(
-            { name: "AES-GCM", length: 128 },
-            false,
-            ["encrypt", "decrypt"]
-          );
-          setKey(key);
-
-          // file to bytes
-          const fileBytes = await fileToByteArray();
-
-          // encrypting bytes
-          const encryptedFile = await encryptData(fileBytes);
-
-          const encryptedFileString = String.fromCharCode.apply(null, encryptedFile);
-          const encryptedBase64FileData = btoa(encryptedFileString);
-
-          console.log(encryptedFile)
-          const element = document.createElement("a");
-          const txtFile = new Blob([encryptedBase64FileData], {type: 'text/plain'});
-          element.href = URL.createObjectURL(txtFile);
-          element.download = "myFile.txt";
-          document.body.appendChild(element);
-          element.click();
-
-          // saving the encrypted data on server
-          //FileSaver.saveAs(encryptedBase64FileData, filename);
-        }
-      )();
-    }
-    catch (err) { console.log(err); };
-  };
-
-  const decryptFile = () =>
-  {
-    try
-    {
-      (async () =>
-        {
-          //
-
-          // saving the encrypted data on server
-          //FileSaver.saveAs(encryptedFileBytes, filename);
-        }
-      )();
-    }
-    catch (err) { console.log(err); };
-  };
+  const onKeyChange = (event) => { setKey(event.target.value); };
+  const encrypt = () => { encryptFile(file, filename); };
+  const decrypt = () => { decryptFile(file, filename, key); };
 
   return (
     <Fragment>
@@ -110,8 +27,8 @@ const Files = () =>
           <input type='text' className='custom-text-input' id='customKey' onChange={onKeyChange} />
         </div>
 
-        <input type='button' value='Encrypt' onClick={encryptFile} className='btn btn-primary btn-block mt-2' />
-        <input type='button' value='Decrypt' onClick={decryptFile} className='btn btn-primary btn-block' />
+        <input type='button' value='Encrypt' onClick={encrypt} className='btn btn-primary btn-block mt-2' />
+        <input type='button' value='Decrypt' onClick={decrypt} className='btn btn-primary btn-block' />
       </form>
     </Fragment>
   );
