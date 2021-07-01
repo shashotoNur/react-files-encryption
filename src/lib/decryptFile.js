@@ -1,62 +1,63 @@
 import { saveAs } from 'file-saver';
+import deriveKey from './deriveKey';
 
 const getFileData = (file) =>
 {
-    return new Promise((resolve, reject) =>
+    return new Promise((resolve, _reject) =>
     {
-    try
-    {
-        let reader = new FileReader();
+        try
+        {
+            let reader = new FileReader();
 
-        reader.readAsArrayBuffer(file);
-        reader.onload = (event) => {
-        resolve(event.target.result)
-        };
-    }
-    catch (err) { reject(err); };
+            reader.readAsArrayBuffer(file);
+            reader.onload = (event) => { resolve(event.target.result) };
+        }
+        catch (err) { console.log(err); };
     });
 };
 
 const decryptData = async (data, decrypting, key) =>
 {
-    const algorithm = { name: "AES-GCM", iv: new TextEncoder().encode("Initialization Vector") };
-
-    if(decrypting === 'name')
+    try
     {
-    const actualData = data.replace(".bin",'');
-    const decodedBase64Filename = atob(actualData);
-    const uint8ArrayFilename = new Uint8Array( [...decodedBase64Filename].map((char) => char.charCodeAt(0)) );
+        const algorithm = { name: "AES-GCM", iv: new TextEncoder().encode("Initialization Vector") };
 
-    const decryptedName = await window.crypto.subtle.decrypt( algorithm, key, uint8ArrayFilename )
-    const originalFilename = new TextDecoder().decode(decryptedName);
+        if(decrypting === 'name')
+        {
+            const actualData = data.replace(".bin",'');
+            const decodedBase64Filename = atob(actualData);
+            const uint8ArrayFilename = new Uint8Array( [...decodedBase64Filename].map((char) => char.charCodeAt(0)) );
 
-    return originalFilename;
+            const decryptedName = await window.crypto.subtle.decrypt( algorithm, key, uint8ArrayFilename )
+            const originalFilename = new TextDecoder().decode(decryptedName);
+
+            return originalFilename;
+        }
+
+        else if(decrypting === 'file') return await window.crypto.subtle.decrypt( algorithm, key, data );
     }
 
-    else if(decrypting === 'file')
-    {
-    console.log(key)
-    const decryptedArrayBuffer = await window.crypto.subtle.decrypt( algorithm, key, data );
-    return decryptedArrayBuffer;
-    };
+    catch(err) { console.log(err); };
 };
 
-const decryptFile = (file, filename, key) =>
+const decryptFile = async (file, filename, passkey) =>
   {
     try
     {
       (async () =>
         {
-          const fileUint8Array = await getFileData(file);
-          const decryptedFileData = await decryptData(fileUint8Array, 'file', key);
+            const key = await deriveKey(passkey);
 
-          const originalName = await decryptData(filename, 'name', key);
-          console.log(originalName);
+            const fileUint8Array = await getFileData(file);
+            const decryptedFileData = await decryptData(fileUint8Array, 'file', key);
 
-          // get original file extension
+            const originalName = await decryptData(filename, 'name', key);
 
-          const originalFile = new Blob([decryptedFileData], { type: 'image/png' });
-          saveAs(originalFile, `${originalName}`);
+            const extension = /[^.]*$/.exec(originalName)[0];
+            const type = `image/${extension}`;
+
+            const originalFile = new Blob([decryptedFileData], { type });
+            saveAs(originalFile, `${originalName}`);
         }
       )();
     }

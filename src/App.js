@@ -3,7 +3,7 @@ import Files from './components/Files';
 const App = () =>
 {
   return (
-    <div className=''>
+    <div className='App'>
       <Files />
     </div>
   );

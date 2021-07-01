@@ -11,3 +11,42 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+.App
+{
+  background: #01165c;
+  margin: 30px auto;
+  padding: 30px;
+  max-width: 50%;
+  color: #eee;
+}
+
+.input-file-key
+{
+  padding: 10px 20px;
+  text-align: center;
+  width: 100%;
+  padding: 10px;
+  box-sizing: border-box;
+  margin: 6px 0;
+  color: #fff;
+}
+
+.input
+{
+  padding: 10px 12px;
+  border-radius: 4px;
+  border: none;
+  font-size: 1em;
+  width: 95%;
+}
+
+.button
+{
+  width: 48%;
+  margin-left: 1%;
+  padding: 1%;
+  border-radius: 36px;
+  border: none;
+  background: #fff;
+}

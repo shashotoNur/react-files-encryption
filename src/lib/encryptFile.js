@@ -1,8 +1,9 @@
 import { saveAs } from 'file-saver';
+import deriveKey from './deriveKey';
 
 const fileToByteArray = (file) =>
 {
-    return new Promise((resolve, reject) =>
+    return new Promise((resolve, _reject) =>
     {
         try
         {
@@ -20,50 +21,47 @@ const fileToByteArray = (file) =>
                 resolve(fileByteArray);
             }
         }
-        catch (err) { reject(err); };
+        catch (err) { console.log(err); };
     });
 };
 
 const encryptData = async (data, encrypting, key) =>
 {
-    const algorithm = { name: "AES-GCM", iv: new TextEncoder().encode("Initialization Vector") };
-    const encryptedData =  await window.crypto.subtle.encrypt( algorithm, key, data );
-
-    const uint8ArrayData = new Uint8Array(encryptedData);
-
-    if(encrypting === 'name')
+    try
     {
-    const stringData = String.fromCharCode.apply(null, uint8ArrayData);
-    const encryptedBase64Data = btoa(stringData);
-    return encryptedBase64Data;
+        const algorithm = { name: "AES-GCM", iv: new TextEncoder().encode("Initialization Vector") };
+        const encryptedData =  await window.crypto.subtle.encrypt( algorithm, key, data );
+
+        const uint8ArrayData = new Uint8Array(encryptedData);
+
+        if(encrypting === 'name')
+        {
+            const stringData = String.fromCharCode.apply(null, uint8ArrayData);
+            const encryptedBase64Data = btoa(stringData);
+            return encryptedBase64Data;
+        }
+
+        return uint8ArrayData;
     }
-
-    return uint8ArrayData;
+    catch (err) { console.log(err); };
 }
 
-const generateKey = async () =>
-{
-    const algorithm = { name: "AES-GCM", length: 128 };
-    const key = await window.crypto.subtle.generateKey( algorithm, false, ["encrypt", "decrypt"] );
-    return key;
-}
-
-const encryptFile = (file, filename) =>
+const encryptFile = async (file, filename, passkey) =>
   {
     try
     {
       (async () =>
         {
-          const key = generateKey();
+            const key = await deriveKey(passkey);
 
-          const fileBytesArray = await fileToByteArray(file);
-          const encryptedFileData = await encryptData(fileBytesArray, 'file', key);
+            const fileBytesArray = await fileToByteArray(file);
+            const encryptedFileData = await encryptData(fileBytesArray, 'file', key);
 
-          const encodedFilename = new TextEncoder().encode(filename);
-          const encryptedName = await encryptData(encodedFilename, 'name', key);
+            const encodedFilename = new TextEncoder().encode(filename);
+            const encryptedName = await encryptData(encodedFilename, 'name', key);
 
-          const binFile = new Blob([encryptedFileData], { type: 'application/octet-stream' });
-          saveAs(binFile, `${encryptedName}.bin`);
+            const binFile = new Blob([encryptedFileData], { type: 'application/octet-stream' });
+            saveAs(binFile, `${encryptedName}.bin`);
         }
       )();
     }

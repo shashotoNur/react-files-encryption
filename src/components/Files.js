@@ -6,7 +6,7 @@ const Files = () =>
 {
   const [file, setFile] = useState('');
   const [filename, setFilename] = useState('Choose File');
-  const [key, setKey] = useState('Enter Any Key');
+  const [passkey, setPasskey] = useState('Enter A Passkey');
 
   const onFileChange = (event) =>
   {
@@ -14,21 +14,21 @@ const Files = () =>
     setFilename((event.target.files[0] !== undefined) ? event.target.files[0].name : 'Choose File');
   };
 
-  const onKeyChange = (event) => { setKey(event.target.value); };
-  const encrypt = () => { encryptFile(file, filename); };
-  const decrypt = () => { decryptFile(file, filename, key); };
+  const onKeyChange = (event) => { setPasskey(event.target.value); };
+  const encrypt = () => { encryptFile(file, filename, passkey); };
+  const decrypt = () => { decryptFile(file, filename, passkey); };
 
   return (
     <Fragment>
+      <h1> Enter any file to encrypt or decrypt </h1>
       <form>
-        <div className='custom-file mt-5'>
-          <input type='file' className='custom-file-input' id='customFile' onChange={onFileChange} />
-          <label className='custom-file-label' htmlFor='customFile'> {filename} </label>
-          <input type='text' className='custom-text-input' id='customKey' onChange={onKeyChange} />
+        <div className='input-file-key'>
+          <input type='file' className='input' id='customFile' onChange={onFileChange} />
+          <input type='text' className='input' id='customKey' onChange={onKeyChange} placeholder={passkey} />
         </div>
 
-        <input type='button' value='Encrypt' onClick={encrypt} className='btn btn-primary btn-block mt-2' />
-        <input type='button' value='Decrypt' onClick={decrypt} className='btn btn-primary btn-block' />
+        <input type='button' value='Encrypt' onClick={encrypt} className='button' />
+        <input type='button' value='Decrypt' onClick={decrypt} className='button' />
       </form>
     </Fragment>
   );
