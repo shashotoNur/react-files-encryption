@@ -23,7 +23,7 @@ const deriveKey = async (passkey) =>
         const key = getKey(passwordKey);
         return key;
     }
-    catch (err) { console.log(err); };
+    catch (err) { console.log(err.message); };
 };
 
 export default deriveKey;

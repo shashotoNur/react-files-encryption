@@ -21,7 +21,7 @@ const fileToByteArray = (file) =>
                 resolve(fileByteArray);
             }
         }
-        catch (err) { console.log(err); };
+        catch (err) { console.log(err.message); };
     });
 };
 
@@ -34,16 +34,14 @@ const encryptData = async (data, encrypting, key) =>
 
         const uint8ArrayData = new Uint8Array(encryptedData);
 
-        if(encrypting === 'name')
-        {
-            const stringData = String.fromCharCode.apply(null, uint8ArrayData);
-            const encryptedBase64Data = btoa(stringData);
-            return encryptedBase64Data;
-        }
+        if(encrypting === 'file') return uint8ArrayData;
+        
+        const stringData = String.fromCharCode.apply(null, uint8ArrayData);
+        const encryptedBase64Data = btoa(stringData);
 
-        return uint8ArrayData;
+        return encryptedBase64Data;
     }
-    catch (err) { console.log(err); };
+    catch (err) { console.log(err.message); };
 }
 
 const encryptFile = async (file, filename, passkey) =>
@@ -57,15 +55,16 @@ const encryptFile = async (file, filename, passkey) =>
             const fileBytesArray = await fileToByteArray(file);
             const encryptedFileData = await encryptData(fileBytesArray, 'file', key);
 
+            const extension = /[^.]*$/.exec(filename)[0];
             const encodedFilename = new TextEncoder().encode(filename);
             const encryptedName = await encryptData(encodedFilename, 'name', key);
 
             const binFile = new Blob([encryptedFileData], { type: 'application/octet-stream' });
-            saveAs(binFile, `${encryptedName}.bin`);
+            saveAs(binFile, `${ encryptedName }.${ extension }`);
         }
       )();
     }
-    catch (err) { console.log(err); };
+    catch (err) { console.log(err.message); };
   };
 
 export default encryptFile;
